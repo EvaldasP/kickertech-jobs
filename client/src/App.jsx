@@ -1,14 +1,22 @@
 import { useState } from "react";
-
-import "./App.css";
+import JobCard from "./components/JobCard";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [jobs, setJobs] = useState([]);
+
+  const loadJobs = () => {
+    fetch("/jobs")
+      .then((res) => res.json())
+      .then(setJobs);
+  };
 
   return (
-    <>
-      <span>Working</span>
-    </>
+    <div>
+      <button onClick={loadJobs}>Load Jobs</button>
+      {jobs.map((job) => (
+        <JobCard key={job.id} {...job} />
+      ))}
+    </div>
   );
 }
 
