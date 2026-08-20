@@ -1,8 +1,7 @@
 import jobsService from "../services/jobsService.js";
 
-const getJobs = (req, res) => {
-  const jobs = jobsService.getJobs();
-
+const getJobs = async (req, res) => {
+  const jobs = await jobsService.scrapeJobs();
   res.json(jobs);
 };
 
