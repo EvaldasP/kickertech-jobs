@@ -4,15 +4,24 @@ import JobCard from "./components/JobCard";
 function App() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const loadJobs = () => {
     setLoading(true);
+    setError(null);
     fetch("/jobs")
-      .then((res) => res.json())
-      .then((data) => {
-        setJobs(data);
-        setLoading(false);
-      });
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((data) => {
+            throw new Error(data.error);
+          });
+        }
+
+        return res.json();
+      })
+      .then((data) => setJobs(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -30,6 +39,7 @@ function App() {
             "Scrape Jobs"
           )}
         </button>
+        {error && <div className="alert alert-error">{error}</div>}
         <div className="flex flex-col gap-4">
           {jobs.map((job) => (
             <JobCard key={job.detailsUrl} {...job} />

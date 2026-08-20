@@ -8,48 +8,51 @@ const scrapeJobs = async () => {
   });
   const page = await browser.newPage();
 
-  await page.goto("https://kickertech.com/jobs/", {
-    waitUntil: "networkidle2",
-    timeout: 60000,
-  });
+  try {
+    await page.goto("https://kickertech.com/jobs/", {
+      waitUntil: "networkidle2",
+      timeout: 60000,
+    });
 
-  await page.waitForSelector("article", { timeout: 30000 });
+    await page.waitForSelector("article", { timeout: 30000 });
 
-  const html = await page.content();
-  const $ = cheerio.load(html);
+    const html = await page.content();
+    const $ = cheerio.load(html);
 
-  const jobs = $("article.creativesplanet-ele-jobs")
-    .map((_, el) => {
-      const salaryText = $(el)
-        .find(".cspt-jobs-salary")
-        .clone()
-        .children()
-        .remove()
-        .end()
-        .text()
-        .trim();
+    const jobs = $("article.creativesplanet-ele-jobs")
+      .map((_, el) => {
+        const salaryText = $(el)
+          .find(".cspt-jobs-salary")
+          .clone()
+          .children()
+          .remove()
+          .end()
+          .text()
+          .trim();
 
-      const { minSalary, maxSalary } = parseSalary(salaryText);
+        const { minSalary, maxSalary } = parseSalary(salaryText);
 
-      return {
-        title: $(el).find(".pbmit-job-position a").text().trim(),
-        detailsUrl: $(el).find(".pbmit-job-position a").attr("href"),
-        team: $(el).find(".pbmit-company-name").text().trim(),
-        location: $(el).find(".cspt-jobs-location").text().trim(),
-        minSalary,
-        maxSalary,
-        type: $(el).find(".cspt-jobs-job-type").text().trim(),
-        posted: $(el).find(".cspt-jobs-date time").text().trim(),
-      };
-    })
-    .get();
+        return {
+          title: $(el).find(".pbmit-job-position a").text().trim(),
+          detailsUrl: $(el).find(".pbmit-job-position a").attr("href"),
+          team: $(el).find(".pbmit-company-name").text().trim(),
+          location: $(el).find(".cspt-jobs-location").text().trim(),
+          minSalary,
+          maxSalary,
+          type: $(el).find(".cspt-jobs-job-type").text().trim(),
+          posted: $(el).find(".cspt-jobs-date time").text().trim(),
+        };
+      })
+      .get();
 
-  for (const job of jobs) {
-    job.linkedIn = await scrapeLinkedIn(page, job.detailsUrl);
+    for (const job of jobs) {
+      job.linkedIn = await scrapeLinkedIn(page, job.detailsUrl);
+    }
+
+    return jobs;
+  } finally {
+    await browser.close();
   }
-
-  await browser.close();
-  return jobs;
 };
 
 const parseSalary = (salaryText) => {
