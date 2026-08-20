@@ -67,11 +67,13 @@ const parseSalary = (salaryText) => {
 
 const scrapeLinkedIn = async (page, url) => {
   await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+
   const html = await page.content();
   const $ = cheerio.load(html);
   const linkedIn =
     $(".application_details a[href*='linkedin.com']").first().attr("href") ||
     null;
+
   return linkedIn;
 };
 
