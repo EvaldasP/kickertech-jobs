@@ -1,0 +1,8 @@
+{
+  "name": "kickertech-jobs",
+  "version": "1.0.0",
+  "scripts": {
+    "setup": "npm install && npm install --prefix server && npm install --prefix client",
+    "start": "npm start --prefix server & npm run dev --prefix client"
+  }
+}
