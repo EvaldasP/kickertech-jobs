@@ -1,20 +1,25 @@
 import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
 
+const JOBS_URL = "https://kickertech.com/jobs/";
+
 const scrapeJobs = async () => {
   const browser = await puppeteer.launch({
     headless: false,
     args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
   });
-  const page = await browser.newPage();
 
   try {
-    await page.goto("https://kickertech.com/jobs/", {
-      waitUntil: "networkidle2",
+    const page = await browser.newPage();
+
+    await page.goto(JOBS_URL, {
+      waitUntil: "domcontentloaded",
       timeout: 60000,
     });
 
-    await page.waitForSelector("article", { timeout: 30000 });
+    await page.waitForSelector("article.creativesplanet-ele-jobs", {
+      timeout: 30000,
+    });
 
     const html = await page.content();
     const $ = cheerio.load(html);
@@ -46,7 +51,11 @@ const scrapeJobs = async () => {
       .get();
 
     for (const job of jobs) {
-      job.linkedIn = await scrapeLinkedIn(page, job.detailsUrl);
+      try {
+        job.linkedIn = await scrapeLinkedIn(page, job.detailsUrl);
+      } catch {
+        job.linkedIn = null;
+      }
     }
 
     return jobs;
@@ -66,7 +75,9 @@ const parseSalary = (salaryText) => {
 };
 
 const scrapeLinkedIn = async (page, url) => {
-  await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+  await page.waitForSelector(".application_details", { timeout: 30000 });
 
   const html = await page.content();
   const $ = cheerio.load(html);
