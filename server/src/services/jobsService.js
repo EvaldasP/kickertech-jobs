@@ -54,6 +54,11 @@ const scrapeJobs = async () => {
       try {
         job.linkedIn = await scrapeLinkedIn(page, job.detailsUrl);
       } catch {
+        console.error(
+          `Failed to scrape LinkedIn for ${job.detailsUrl}:`,
+          error,
+        );
+
         job.linkedIn = null;
       }
     }
